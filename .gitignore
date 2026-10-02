@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+.venv/
+vision_output/

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "name": "PCB_ROI_Example",
+  "nodes": [
+    {
+      "id": "0",
+      "type": "roi",
+      "enabled": true,
+      "params": {
+        "x": 405,
+        "y": 99,
+        "width": 1000,
+        "height": 1016
+      }
+    },
+    {
+      "id": "1",
+      "type": "gaussian",
+      "enabled": true,
+      "params": {
+        "kernel": 5,
+        "sigma": 0
+      }
+    },
+    {
+      "id": "2",
+      "type": "threshold",
+      "enabled": true,
+      "params": {
+        "value": 180,
+        "polarity": "bright"
+      }
+    },
+    {
+      "id": "3",
+      "type": "morphology",
+      "enabled": true,
+      "params": {
+        "operation": "opening",
+        "shape": "rectangle",
+        "kernel": 3,
+        "iterations": 1
+      }
+    },
+    {
+      "id": "4",
+      "type": "contours",
+      "enabled": true,
+      "params": {
+        "min_area": 100,
+        "max_area": 0
+      }
+    }
+  ]
+}

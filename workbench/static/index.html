@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Vision Bench · 이미지 실험실</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-icon">▣</span><div>VISION <b>BENCH</b><small>CLASSICAL VISION WORKSPACE</small></div></div>
+    <div class="project"><input id="recipe-name" aria-label="Recipe 이름" value="Untitled experiment"><span id="saved-state">로컬 작업 공간</span></div>
+    <div class="actions"><button id="import">JSON 열기</button><button id="save">JSON 저장</button><button class="primary" id="export">세팅 / 코드 추출 ↗</button></div>
+  </header>
+  <div class="workspace-heading"><div><span class="eyebrow">IMAGE WORKBENCH</span><h1>이미지에서, 검사 조건까지.</h1><p>단계를 조합하고 결과를 비교하세요. 찾은 조건은 JSON과 Python으로 가져갈 수 있습니다.</p></div><span class="local-badge"><i></i> LOCAL · 원본 해상도 연산</span></div>
+  <main>
+    <aside class="panel pipeline-panel">
+      <div class="panel-heading"><h2>Pipeline <span id="node-count">0</span></h2><button class="icon-button" id="reset" title="단계 모두 지우기" aria-label="단계 모두 지우기">↺</button></div>
+      <button id="source-node" class="source-card"><span class="step-number">IN</span><span><strong>원본 이미지</strong><small id="source-label">이미지를 추가하세요</small></span><span class="source-dot"></span></button>
+      <div id="pipeline" class="pipeline-list"></div>
+      <button class="add-step" id="add">＋ 처리 단계 추가</button>
+      <div class="pipeline-bottom"><span class="eyebrow">QUICK START</span><button id="preset">납땜 검사 기본 흐름 불러오기 <span>↗</span></button><p>Blur → Threshold → Opening → Contour</p></div>
+    </aside>
+    <section class="panel preview-panel">
+      <div class="panel-heading"><div><h2 id="preview-title">Image preview</h2><small id="preview-meta">PNG · JPG · TIFF / 8-bit</small></div><div class="preview-tools"><button id="compare">원본 비교</button><button id="fit">Fit</button><button id="one-to-one" title="원본 크기로 Preview 확대">확대</button></div></div>
+      <div class="image-toolbar"><label class="file-button" for="image-input">↥ 이미지 열기</label><select id="samples" aria-label="샘플 이미지"><option value="">샘플 이미지 선택</option></select><span id="image-size">이미지 없음</span><button id="crop">⌗ ROI 그리기</button></div>
+      <div id="stage" class="stage">
+        <div id="empty" class="empty"><div class="empty-icon">▧</div><h3>검사할 이미지를 놓아주세요</h3><p>이미지를 넣고, 필요한 단계부터 시작하세요.</p><label class="primary file-button" for="image-input">이미지 선택</label><small>PNG / JPG / TIFF · 최대 40 MB · Mono8</small></div>
+        <div id="canvas-wrap" class="canvas-wrap" hidden><canvas id="canvas"></canvas></div>
+        <div class="stage-badge" id="stage-badge" hidden>ORIGINAL</div>
+      </div>
+      <div class="preview-footer"><span id="coordinates">원본 좌표 · —</span><span id="run-status" role="status">이미지 대기 중</span></div>
+      <div id="error" class="error" role="alert" hidden></div>
+    </section>
+    <aside class="panel parameters-panel"><div class="panel-heading"><h2>Parameters</h2><span class="tiny-label">LIVE</span></div><div id="parameters" class="parameters"><div class="parameter-empty">처리 단계를 선택하면<br>여기에서 값을 조절할 수 있습니다.</div></div><div class="parameter-footer"><label><input id="auto" type="checkbox" checked> 변경 시 자동 실행</label><button id="run" class="primary">▶ 실행</button></div></aside>
+    <section class="panel results-panel"><div class="panel-heading"><h2>측정 결과 <span id="object-count">0 objects</span></h2><div><span id="decision" class="decision"></span><button id="result-export">결과 JSON ↓</button></div></div><div id="results" class="results-empty">Contour 또는 Connected Components 단계를 추가하면 객체별 측정값이 표시됩니다.</div></section>
+  </main>
+  <footer class="app-footer"><span>VISION BENCH <b>01</b></span><span>이미지는 이 PC에서만 처리됩니다. 카메라 · DB 연결 없이.</span><span id="version">OpenCV engine</span></footer>
+  <input id="image-input" type="file" accept=".png,.jpg,.jpeg,.tif,.tiff" hidden><input id="json-input" type="file" accept=".json" hidden>
+  <dialog id="library"><div class="dialog-heading"><div><span class="eyebrow">OPERATION LIBRARY</span><h2>다음 처리 단계</h2></div><button class="close" aria-label="닫기">×</button></div><input id="search" placeholder="필터, Threshold, ROI 검색…" aria-label="기능 검색"><div id="operation-list"></div></dialog>
+  <dialog id="export-dialog"><div class="dialog-heading"><div><span class="eyebrow">TAKE YOUR SETTINGS</span><h2>확정한 조건을 가져가세요.</h2></div><button class="close" aria-label="닫기">×</button></div><p>현재 편집 중인 설정을 추출합니다. ROI, 비활성 단계, 모든 파라미터가 포함됩니다.</p><div class="export-options"><button data-export="json"><strong>Recipe JSON</strong><small>다시 불러와 이어서 실험하기</small><span>↓</span></button><button data-export="csv"><strong>설정표 CSV</strong><small>단계별 설정값을 Excel에서 검토하기</small><span>↓</span></button><button data-export="python"><strong>실행 가능한 Python</strong><small>OpenCV + NumPy만으로 동일한 처리 실행</small><span>↓</span></button></div><div id="export-preview" hidden><label for="export-content">추출 내용 · 바로 복사할 수 있습니다</label><textarea id="export-content" readonly spellcheck="false" aria-label="추출 내용"></textarea><button id="copy-export">전체 내용 복사</button></div><pre>python vision_pipeline.py image.tiff</pre><p class="muted">Python 파일에는 확정된 Recipe와 처리 엔진이 포함됩니다. 웹 서버가 필요하지 않습니다.</p></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <script src="/app.js"></script>
+</body>
+</html>
