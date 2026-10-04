@@ -37,6 +37,31 @@ python vision_pipeline.py test_image/0.tiff --output output
 - 파일 40MB, 24메가픽셀, 24단계, 출력 객체 1000개 제한이 있습니다. 처리 중인 한 요청이 끝나면 가장 최근 설정을 실행하고 오래된 응답은 화면에 적용하지 않습니다.
 - JSON 스키마의 고정된 Operation 의미가 처리 계약입니다. 알려지지 않은 파라미터나 잘못된 연결은 거부합니다. 이 도구는 단일 사용자 로컬 사용을 전제로 합니다.
 
+## 기능 선택 · 설명 · 수동 조절
+
+기존 3개 패널, 이미지 Preview, 측정 표, Recipe 형식을 유지하면서 기능을 **19개 → 53개**로 확장했습니다. 카메라·학습·3D 등 OpenCV 전체 SDK를 임의 실행하는 방식이 아니라 현재 Mono8 단일 이미지 검사에 연결 가능한 기능을 제공합니다. 히스토그램·통계 그래프와 별도 A/B 화면은 추가하지 않습니다.
+
+1. **처리 단계 추가**에서 이름·용도·파라미터를 검색하거나 분류를 선택합니다.
+2. 기능을 선택하면 설명, 입력/출력 타입, 파라미터 범위·간격·기본값을 먼저 읽을 수 있습니다. 입력이 맞지 않는 기능도 설명은 볼 수 있고, 필요한 연결을 안내합니다.
+3. **선택 기능 추가**로 단계에 넣습니다. 오른쪽 Parameters에서 모든 수치 값을 직접 입력하고 선택값을 바꿀 수 있습니다. 제공되는 슬라이더도 함께 사용할 수 있습니다.
+4. **변경 시 자동 실행**을 끄면 MANUAL 모드입니다. 여러 값을 수정한 뒤 **▶ 실행**으로 적용합니다. 수치의 범위와 홀수 커널 간격을 지켜주세요. Otsu/Triangle처럼 알고리즘이 계산하는 임계값 자체는 자동이며 수동 임계값은 Global Threshold에서 조절합니다.
+
+| 분류 | 선택 가능한 기능 |
+| --- | --- |
+| 입력 | ROI |
+| 필터 | Gaussian, Median, Bilateral, Mean/Box, Unsharp, Non-local Means, 직접 3×3 Filter2D 커널, Gabor |
+| 밝기 | Equalize, CLAHE, Gamma, Normalize, 밝기/대비, Top-hat, Black-hat, 배경 보정 |
+| 분할 | Global, Otsu, Adaptive, Range, Triangle, Truncate/To-zero, 닫힌 Edge → Mask |
+| 에지 | Canny, Sobel, Laplacian, Morphological Gradient, Scharr, Prewitt, Roberts, DoG, LoG, Harris 응답 |
+| 형태학 | Mask/Edge Morphology, Grayscale Morphology |
+| 마스크 정리 | 구멍 채우기, 작은 영역 제거, Distance Transform, 경계 영역 제거, 면적 범위 필터, Convex Hull, Watershed |
+| 측정 | Contour, Connected Components, Hough 선분, Hough 원, Shi–Tomasi 코너, ORB, AKAZE, ROI Template Matching |
+| 변환 · 판정 | 반전, 기존 OK/NG Rule |
+
+검출 기능도 기존 경계 상자 Preview와 측정 표를 사용합니다. 선분·코너는 영역 면적 0, 원은 πr², 특징점은 지원 원 면적이며 Contour/Blob 면적과 의미가 다릅니다. 선분의 Perimeter는 닫힌 2점 윤곽의 둘레이므로 길이의 두 배이며 실제 길이와 원 반지름, 매칭 점수 등 추가 값은 결과 JSON에 포함됩니다. 위치는 ROI를 포함해 원본 좌표로 기록합니다. Template Matching의 템플릿 X/Y 입력만 현재 처리 영상 좌표 기준입니다.
+
+Hough Circles와 AKAZE는 4메가픽셀 이하 ROI에서 실행합니다. 큰 NLM 검색 창이나 Gabor 커널은 시간이 걸리므로 작은 ROI와 MANUAL 모드로 먼저 비교하세요. Template Matching은 같은 처리 영상 안의 ROI를 참조하며 회전·크기 변화나 다른 참조 이미지 업로드를 지원하지 않습니다. Watershed는 씨앗이 분리된 경우에만 붙은 객체를 나누므로 중심 거리 비율을 조절하세요.
+
 ## 구조와 검증
 
 - `workbench/engine.py`: UI와 독립된 OpenCV 연산·검증·측정
